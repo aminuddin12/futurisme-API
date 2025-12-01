@@ -68,6 +68,6 @@ Pastikan Anda telah menginstal:
 Clone repositori dan unduh dependency:
 
 ```bash
-git clone [https://github.com/username/futurisme-api.git](https://github.com/username/futurisme-api.git)
+git clone [https://github.com/username/futurisme-api.git]
 cd futurisme-api
 go mod tidy

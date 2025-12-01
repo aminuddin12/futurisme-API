@@ -7,7 +7,9 @@ import (
 	"futurisme-api/internal/middleware"
 	authHttp "futurisme-api/internal/modules/auth/delivery/http"
 	authUseCase "futurisme-api/internal/modules/auth/usecase"
+	userHttp "futurisme-api/internal/modules/user/delivery/http" // Import User Handler
 	userRepo "futurisme-api/internal/modules/user/repository"
+	userUseCase "futurisme-api/internal/modules/user/usecase" // Import User UseCase
 	"futurisme-api/pkg/database"
 	"futurisme-api/pkg/utils/response"
 
@@ -35,10 +37,17 @@ func RunServer(isDev bool) {
 	// 2. Connect Database
 	db := database.NewPostgresDatabase(cfg)
 
-	// 3. Setup Dependency Injection
+	// 3. Setup Dependency Injection (Wiring)
+	// Repositories
 	userRepository := userRepo.NewUserRepository(db)
-	authenticationUseCase := authUseCase.NewAuthUseCase(userRepository, cfg)
-	authenticationHandler := authHttp.NewAuthHandler(authenticationUseCase)
+
+	// UseCases
+	authUC := authUseCase.NewAuthUseCase(userRepository, cfg)
+	userUC := userUseCase.NewUserUseCase(userRepository) // Logic Profile
+
+	// Handlers
+	authHandler := authHttp.NewAuthHandler(authUC)
+	userHandler := userHttp.NewUserHandler(userUC) // Handler Profile
 
 	// 4. Init Fiber App
 	app := fiber.New(fiber.Config{
@@ -53,15 +62,23 @@ func RunServer(isDev bool) {
 
 	// 5. Routes
 	api := app.Group("/api")
+
+	// V1 Group (Dilindungi Layer 1: App Key)
 	v1 := api.Group("/v1", middleware.AppLayerAuth(cfg))
 
 	v1.Get("/", func(c *fiber.Ctx) error {
 		return response.Success(c, fiber.StatusOK, "Futurisme API v1 is Running", nil)
 	})
 
+	// Auth Routes (Public - Tidak butuh JWT)
 	authRoutes := v1.Group("/auth")
-	authRoutes.Post("/register", authenticationHandler.Register)
-	authRoutes.Post("/login", authenticationHandler.Login)
+	authRoutes.Post("/register", authHandler.Register)
+	authRoutes.Post("/login", authHandler.Login)
+
+	// User Routes (Protected - Butuh JWT Layer 2)
+	// Middleware.JWTProtected disuntikkan di sini
+	userRoutes := v1.Group("/users", middleware.JWTProtected(cfg))
+	userRoutes.Get("/profile", userHandler.GetProfile)
 
 	// 6. Start Server
 	log.Printf("🚀 Server running on port %s in %s mode", cfg.App.Port, cfg.App.Env)

@@ -94,7 +94,8 @@ func (uc *authUseCase) Login(ctx context.Context, req *LoginRequest) (*LoginResp
 	}
 
 	// 3. Generate JWT Token
-	token, err := jwtUtil.GenerateToken(user.ID, user.Role, uc.cfg.Security.JWTSecret, 24) // Assuming 24 hours expiry for now
+	// FIX: Menggunakan Config JWTExpiredHours, bukan hardcode 24
+	token, err := jwtUtil.GenerateToken(user.ID, user.Role, uc.cfg.Security.JWTSecret, uc.cfg.Security.JWTExpiredHours)
 	if err != nil {
 		return nil, err
 	}
