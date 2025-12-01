@@ -31,6 +31,7 @@ Teknologi dan pola desain utama yang digunakan dalam aplikasi ini:
 
 Struktur direktori dirancang sedinamis mungkin agar mudah dipahami oleh pengembang yang terbiasa dengan framework seperti Laravel, namun tetap mengikuti kaidah *idiomatic* Go.
 
+```
 futurisme-api/
 ├── cmd/
 │   └── commands/        # Definisi perintah CLI (start, seed, dll) - Mirip Artisan Console
@@ -52,7 +53,7 @@ futurisme-api/
 ├── go.mod               # Dependency Manager
 ├── main.go              # Entry Point Aplikasi
 └── Makefile             # Shortcut perintah terminal
-
+```
 ---
 
 ## 🚀 Cara Menjalankan Aplikasi
